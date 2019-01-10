@@ -262,7 +262,7 @@ export function validateMeta (topic: TOPIC, action: ALL_ACTIONS, meta: { [key: s
     if (meta[key] !== undefined
       && required.indexOf(key as M) === -1
       && optional.indexOf(key as M) === -1) {
-      return `meta object has unknown key ${key}`
+      return `meta object [topic:${topic},action:${action}] has unknown key ${key}`
     }
   }
   for (const req of required) {
