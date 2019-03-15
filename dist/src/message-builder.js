@@ -38,10 +38,6 @@ const message_constants_1 = require("./message-constants");
 const utils_1 = require("./utils");
 const constants_1 = require("./constants");
 const message_validator_1 = require("./message-validator");
-const META_KEY_ARR = [];
-for (const key in message_constants_1.META_KEYS) {
-    META_KEY_ARR.push([message_constants_1.META_KEYS[key], key]);
-}
 function getMessage(msg, isAck) {
     const message = msg;
     let action = message.action;
@@ -55,13 +51,26 @@ function getMessage(msg, isAck) {
             throw new Error(`message ${message_constants_1.TOPIC[message.topic]} ${message.action} should not have an ack`);
         }
     }
+    // these mimic the META_KEYS constants.
     const meta = Object.create(null);
-    for (const [mkey, okey] of META_KEY_ARR) {
-        meta[mkey] = message[okey];
+    if (message.payloadEncoding !== message_constants_1.PAYLOAD_ENCODING.JSON) {
+        meta.e = message.payloadEncoding;
     }
-    if (meta[message_constants_1.META_KEYS.payloadEncoding] === message_constants_1.PAYLOAD_ENCODING.JSON) {
-        delete meta[message_constants_1.META_KEYS.payloadEncoding];
-    }
+    meta.n = message.name;
+    meta.m = message.names;
+    meta.s = message.subscription;
+    meta.c = message.correlationId;
+    meta.v = message.version;
+    meta.p = message.path;
+    meta.r = message.reason;
+    meta.u = message.url;
+    meta.t = message.originalTopic;
+    meta.a = message.originalAction;
+    meta.x = message.protocolVersion;
+    meta.rn = message.requestorName;
+    meta.rd = message.requestorData;
+    meta.ts = message.trustedSender;
+    meta.rt = message.registryTopic;
     const metaError = message_validator_1.validateMeta(message.topic, action, meta);
     if (metaError) {
         throw new Error(`invalid ${message_constants_1.TOPIC[message.topic]} ${message_constants_1.ACTIONS[message.topic][action] || action}: ${metaError}`);

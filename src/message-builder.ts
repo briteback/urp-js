@@ -38,7 +38,6 @@ import {
   ACTIONS,
   ALL_ACTIONS,
   RECORD_ACTIONS,
-  META_KEYS,
   PAYLOAD_ENCODING,
   Message,
 } from './message-constants'
@@ -58,11 +57,6 @@ import {
   hasPayload,
 } from './message-validator'
 
-const META_KEY_ARR: Array<Array<any>> = [];
-for (const key in META_KEYS) {
-  META_KEY_ARR.push([META_KEYS[key], key]);
-}
-
 export function getMessage (msg: Message, isAck: boolean): Buffer {
   const message = msg as any
   let action = message.action
@@ -79,13 +73,26 @@ export function getMessage (msg: Message, isAck: boolean): Buffer {
     }
   }
 
+  // these mimic the META_KEYS constants.
   const meta = Object.create(null)
-  for (const [mkey, okey] of META_KEY_ARR) {
-    meta[mkey] = message[okey]
+  if (message.payloadEncoding !== PAYLOAD_ENCODING.JSON) {
+    meta.e = message.payloadEncoding;
   }
-  if (meta[META_KEYS.payloadEncoding] === PAYLOAD_ENCODING.JSON) {
-    delete meta[META_KEYS.payloadEncoding]
-  }
+  meta.n = message.name;
+  meta.m = message.names;
+  meta.s = message.subscription;
+  meta.c = message.correlationId;
+  meta.v = message.version;
+  meta.p = message.path;
+  meta.r = message.reason;
+  meta.u = message.url;
+  meta.t = message.originalTopic;
+  meta.a = message.originalAction;
+  meta.x = message.protocolVersion;
+  meta.rn = message.requestorName;
+  meta.rd = message.requestorData;
+  meta.ts = message.trustedSender;
+  meta.rt = message.registryTopic;
 
   const metaError = validateMeta(message.topic, action, meta)
   if (metaError) {
