@@ -38,6 +38,10 @@ const message_constants_1 = require("./message-constants");
 const utils_1 = require("./utils");
 const constants_1 = require("./constants");
 const message_validator_1 = require("./message-validator");
+const META_KEY_ARR = [];
+for (const key in message_constants_1.META_KEYS) {
+    META_KEY_ARR.push([message_constants_1.META_KEYS[key], key]);
+}
 function getMessage(msg, isAck) {
     const message = msg;
     let action = message.action;
@@ -52,8 +56,8 @@ function getMessage(msg, isAck) {
         }
     }
     const meta = Object.create(null);
-    for (const key in message_constants_1.META_KEYS) {
-        meta[message_constants_1.META_KEYS[key]] = message[key];
+    for (const [mkey, okey] of META_KEY_ARR) {
+        meta[mkey] = message[okey];
     }
     if (meta[message_constants_1.META_KEYS.payloadEncoding] === message_constants_1.PAYLOAD_ENCODING.JSON) {
         delete meta[message_constants_1.META_KEYS.payloadEncoding];
@@ -63,7 +67,7 @@ function getMessage(msg, isAck) {
         throw new Error(`invalid ${message_constants_1.TOPIC[message.topic]} ${message_constants_1.ACTIONS[message.topic][action] || action}: ${metaError}`);
     }
     const metaStr = JSON.stringify(meta);
-    const metaBuff = metaStr === '{}' ? null : Buffer.from(metaStr, 'utf8');
+    const metaBuff = metaStr.length === 2 ? null : Buffer.from(metaStr, 'utf8');
     let payloadBuff;
     if (message.data instanceof Buffer) {
         payloadBuff = message.data;

@@ -58,6 +58,11 @@ import {
   hasPayload,
 } from './message-validator'
 
+const META_KEY_ARR: Array<Array<any>> = [];
+for (const key in META_KEYS) {
+  META_KEY_ARR.push([META_KEYS[key], key]);
+}
+
 export function getMessage (msg: Message, isAck: boolean): Buffer {
   const message = msg as any
   let action = message.action
@@ -75,8 +80,8 @@ export function getMessage (msg: Message, isAck: boolean): Buffer {
   }
 
   const meta = Object.create(null)
-  for (const key in META_KEYS) {
-    meta[META_KEYS[key]] = message[key]
+  for (const [mkey, okey] of META_KEY_ARR) {
+    meta[mkey] = message[okey]
   }
   if (meta[META_KEYS.payloadEncoding] === PAYLOAD_ENCODING.JSON) {
     delete meta[META_KEYS.payloadEncoding]
@@ -88,7 +93,7 @@ export function getMessage (msg: Message, isAck: boolean): Buffer {
   }
 
   const metaStr = JSON.stringify(meta)
-  const metaBuff = metaStr === '{}' ? null : Buffer.from(metaStr, 'utf8')
+  const metaBuff = metaStr.length === 2 ? null : Buffer.from(metaStr, 'utf8');
 
   let payloadBuff: Buffer | null
   if (message.data instanceof Buffer) {
